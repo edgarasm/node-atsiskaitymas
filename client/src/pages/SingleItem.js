@@ -15,6 +15,10 @@ const ItemInfo = styled.div`
     margin-left: 100px;
     margin-right: 100px;
   }
+
+  && span {
+    display: inline-block;
+  }
 `;
 
 const BidList = styled.div`
@@ -70,7 +74,7 @@ const SingleItem = () => {
           <p>TITLE: {item.title}</p>
           <p>CURRENT PRICE: €{item.price}</p>
           <p>
-            TIME LEFT:
+            TIME LEFT:{' '}
             <span>
               <Countdown date={item.time}>
                 <Completionist />

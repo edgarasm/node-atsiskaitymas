@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import MainContext from '../context/MainContext';
 import { get } from '../plugins/http';
 import Countdown from 'react-countdown';
+import { useState } from 'react';
 
 const AuctionList = styled.div`
   margin: auto;
@@ -38,6 +39,7 @@ const Card = styled.div`
 const Auction = () => {
   const { items, setItems, setCurrentItem, userLoggedIn } = useContext(MainContext);
   const nav = useNavigate();
+  const [finished, setFinished] = useState(false);
 
   useEffect(() => {
     getItems();
@@ -57,7 +59,10 @@ const Auction = () => {
     console.log('items ===', items);
   };
 
-  const Completionist = () => <p>auction ended</p>;
+  const Completionist = () => {
+    <p>auction ended</p>;
+    setFinished(true);
+  };
 
   return userLoggedIn ? (
     <AuctionList>
@@ -68,7 +73,7 @@ const Auction = () => {
             <p>{x.title}</p>
             <p>Starting price: €{x.price}</p>
             <p>
-              Auction ends in:
+              Auction ends in:{' '}
               <span>
                 <Countdown date={x.time}>
                   <Completionist />

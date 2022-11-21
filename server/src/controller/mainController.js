@@ -51,6 +51,8 @@ module.exports = {
     const newItem = new itemSchema({ image, title, time, price });
 
     await newItem.save();
+
+    res.send({ error: false, message: 'item added', data: newItem });
   },
   singleItem: async (req, res) => {
     const { id } = req.params;

@@ -37,7 +37,7 @@ const AuthForm = styled.div`
 
 const Auth = () => {
   const nav = useNavigate();
-  const { setUserLoggedIn, setCurrentUser } = useContext(MainContext);
+  const { socket, setUserLoggedIn, setCurrentUser } = useContext(MainContext);
 
   const usernameRef = useRef();
   const pass1Ref = useRef();
@@ -74,6 +74,8 @@ const Auth = () => {
     if (res.error === false) {
       setUserLoggedIn(true);
       setCurrentUser(user.username);
+
+      socket.emit('login', user);
 
       nav('/auction');
     } else if (res.error) {
