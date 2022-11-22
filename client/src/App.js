@@ -6,7 +6,6 @@ import MainContext from './context/MainContext';
 
 import Nav from './components/Nav';
 import Auth from './pages/Auth';
-// import Login from './pages/Login';
 import Auction from './pages/Auction';
 import AddItem from './pages/AddItem';
 import SingleItem from './pages/SingleItem';
