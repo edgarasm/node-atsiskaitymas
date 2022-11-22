@@ -10,13 +10,17 @@ const NavBar = styled.div`
   justify-content: space-around;
   align-items: center;
   background-color: lightcoral;
+  border-bottom: 4px solid black;
 
   && a {
     text-decoration: none;
+    font-weight: 500;
+    font-size: 20px;
     color: black;
+    transition: transform 0.1s;
   }
   && a:hover {
-    scale: 1.2;
+    transform: scale(1.1);
   }
 `;
 const Nav = () => {

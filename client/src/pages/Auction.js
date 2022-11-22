@@ -1,10 +1,9 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import MainContext from '../context/MainContext';
 import { get } from '../plugins/http';
 import Countdown from 'react-countdown';
-import { useState } from 'react';
 
 const AuctionList = styled.div`
   margin: auto;
@@ -21,15 +20,18 @@ const Card = styled.div`
   height: 260px;
   border: 4px solid black;
   border-radius: 10px;
+  background-color: white;
+  transition: transform 0.1s;
+
+  &&:hover {
+    transform: scale(1.05);
+    cursor: pointer;
+  }
 
   && img {
     height: 200px;
   }
 
-  &&:hover {
-    scale: 1.05;
-    cursor: pointer;
-  }
   && p {
     font-size: 14px;
     margin: 0;
@@ -37,57 +39,70 @@ const Card = styled.div`
 `;
 
 const Auction = () => {
-  const { items, setItems, setCurrentItem, userLoggedIn } = useContext(MainContext);
+  const { socket, items, setItems, setCurrentItem, currentItem, userLoggedIn } =
+    useContext(MainContext);
+  const [isLoading, setIsLoading] = useState(true);
   const nav = useNavigate();
-  const [finished, setFinished] = useState(false);
 
   useEffect(() => {
     getItems();
-  }, [setItems]);
+  }, [items]);
 
   const getItems = async () => {
     const res = await get('auction');
-    console.log('res ===', res);
+    // console.log('res ===', res);
     setItems(res.data);
-    console.log('items ===', items);
+    // console.log('items ===', items);
+    setIsLoading(false);
   };
 
-  const handleClick = (i) => {
-    console.log('i ===', i);
-    setCurrentItem(i);
-    nav('/singleItem/' + i);
-    console.log('items ===', items);
+  const handleClick = (id) => {
+    setCurrentItem(id);
+
+    // console.log('currentItem ===', currentItem);
+    socket.emit('joinRoom', currentItem);
+    console.log('joinRoom ===', currentItem);
+
+    nav('/singleItem/' + id);
   };
 
   const Completionist = () => {
     <p>auction ended</p>;
-    setFinished(true);
   };
 
   return userLoggedIn ? (
-    <AuctionList>
-      {items.map((x, i) => {
-        return (
-          <Card key={i} onClick={() => handleClick(i)}>
-            <img src={x.image} alt="" />
-            <p>{x.title}</p>
-            <p>Starting price: €{x.price}</p>
-            <p>
-              Auction ends in:{' '}
-              <span>
-                <Countdown date={x.time}>
-                  <Completionist />
-                </Countdown>
-              </span>
-            </p>
-          </Card>
-        );
-      })}
-    </AuctionList>
+    !isLoading ? (
+      <AuctionList>
+        {items.map((x, i) => {
+          return (
+            <Card key={i} onClick={() => handleClick(x._id)}>
+              <img src={x.image} alt="" />
+              <p>{x.title}</p>
+              <p>Starting price: €{x.price}</p>
+              <p>
+                Auction ends in:{' '}
+                <span>
+                  <Countdown date={x.time}>
+                    <Completionist />
+                  </Countdown>
+                </span>
+              </p>
+            </Card>
+          );
+        })}
+      </AuctionList>
+    ) : (
+      <p>Loading...</p>
+    )
   ) : (
     <>
-      <h1>You must log in to see the auction</h1>
-      <Link to={'/'}>LOGIN</Link>
+      <h1>
+        You must{' '}
+        <span>
+          <Link to={'/'}>log in</Link>
+        </span>{' '}
+        to see the auction
+      </h1>
     </>
   );
 };

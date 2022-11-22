@@ -18,17 +18,22 @@ const AuthForm = styled.div`
   flex-direction: column;
   width: 300px;
   height: 300px;
-  border: 1px solid black;
+  border: 4px solid black;
   border-radius: 10px;
 
   && input {
+    border: 2px solid black;
+    border-radius: 10px;
     width: 200px;
     height: 40px;
     font-size: 20px;
+    padding: 5px;
     margin: 5px;
   }
 
   && button {
+    border: 2px solid black;
+    border-radius: 10px;
     width: 160px;
     height: 40px;
     font-size: 20px;
@@ -57,6 +62,8 @@ const Auth = () => {
     if (res.error === false) {
       setUserLoggedIn(true);
       setCurrentUser(user.username);
+
+      socket.emit('login', user);
 
       nav('/auction');
     } else if (res.error) {

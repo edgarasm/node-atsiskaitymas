@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import MainContext from '../context/MainContext';
-import { post } from '../plugins/http';
+import { get, post } from '../plugins/http';
 import Countdown from 'react-countdown';
 import { Link } from 'react-router-dom';
 
@@ -9,8 +9,11 @@ const ItemInfo = styled.div`
   display: flex;
   justify-content: left;
   margin-top: 40px;
+  font-weight: 500;
 
   && img {
+    border: 4px solid black;
+    border-radius: 10px;
     width: 400px;
     margin-left: 100px;
     margin-right: 100px;
@@ -19,46 +22,85 @@ const ItemInfo = styled.div`
   && span {
     display: inline-block;
   }
+
+  && input {
+    border: 2px solid black;
+    border-radius: 10px;
+    width: 180px;
+    height: 27px;
+    padding: 5px;
+    font-size: 20px;
+  }
+
+  && button {
+    border: 2px solid black;
+    border-radius: 10px;
+    width: 100px;
+    height: 40px;
+    font-size: 20px;
+    margin-top: 10px;
+    margin-left: 12px;
+    cursor: pointer;
+  }
+  && button:hover {
+    background-color: lightgrey;
+  }
 `;
 
-const BidList = styled.div`
+const BidsList = styled.div`
   width: 300px;
-  height: 200px;
-  border: 1px solid black;
+  height: 140px;
+  border: 2px solid black;
+  border-radius: 10px;
+  background-color: white;
+  overflow: auto;
 `;
 
 const SingleItem = () => {
-  const { item, setItem, items, currentItem, currentUser, userLoggedIn } = useContext(MainContext);
+  const { socket, item, setItem, items, currentItem, currentUser, userLoggedIn } =
+    useContext(MainContext);
   const [bids, setBids] = useState([{}]);
+  const [bidsList, setBidsList] = useState([]);
 
   useEffect(() => {
     getItem();
-  }, [currentItem, bids]);
+  }, [items]);
+
+  useEffect(() => {
+    socket.on('receiveBids', (data) => {
+      console.log('data ===', data);
+      setBidsList((prev) => [...prev, data]);
+      console.log('bidsList ===', bidsList);
+    });
+  }, [bidsList, socket]);
 
   const getItem = async () => {
-    setItem(items[currentItem]);
-    console.log('item ===', item);
+    const res = await get('singleItem/' + currentItem);
+    // console.log('res ===', res);
+    setItem(res.data);
+    // console.log('item ===', item);
   };
 
   const bidRef = useRef();
 
   const handleClick = async () => {
-    console.log('clicked', bidRef.current.value);
-
     if (bidRef.current.value <= item.price) {
       alert('Bid must be higher than current price!');
     } else {
+      console.log('new bid: €', bidRef.current.value);
+
       const data = { itemId: item._id, bidder: currentUser, price: bidRef.current.value };
 
-      console.log('data ===', data);
+      // console.log('data ===', data);
+
+      socket.emit('sendBid', data);
 
       const res = await post('updateBid', data);
+      // console.log('res ===', res);
 
-      console.log('res ===', res);
+      // setBids((prev) => ({ ...prev, bidder: currentUser, price: bidRef.current.value }));
 
-      setBids((prev) => ({ ...prev, bidder: currentUser, price: bidRef.current.value }));
-
-      console.log('bids ===', bids);
+      // console.log('bids ===', bids);
     }
   };
 
@@ -84,16 +126,16 @@ const SingleItem = () => {
           <p>HIGHEST BIDDER: {item.bidder ? item.bidder : ''}</p>
         </div>
         <div>
-          <h2>BID LIST:</h2>
-          <BidList>
-            {/* {bids !== null
-              ? bids.map((x, i) => (
-                  <div key={i}>
+          <h2>BIDS LIST:</h2>
+          <BidsList>
+            {bidsList !== null
+              ? bidsList.map((x, i) => (
+                  <p key={i}>
                     {x.bidder}: €{x.price}
-                  </div>
+                  </p>
                 ))
-              : null} */}
-          </BidList>
+              : null}
+          </BidsList>
           <input ref={bidRef} type="number" placeholder="BID AMOUNT" />
           <button onClick={handleClick}>BID</button>
         </div>
@@ -101,8 +143,13 @@ const SingleItem = () => {
     </ItemInfo>
   ) : (
     <>
-      <h1>You must log in to see the auction</h1>
-      <Link to={'/'}>LOGIN</Link>
+      <h1>
+        You must{' '}
+        <span>
+          <Link to={'/'}>log in</Link>
+        </span>{' '}
+        to see the auction
+      </h1>
     </>
   );
 };
